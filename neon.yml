@@ -1,0 +1,8 @@
+databases:
+  default:
+    host: ENC:9G48EKXFpcGdcxyhll1Rtw8lKvKewG40R+RqK4fh8lwZit5my0QogTmXoDtzaT4qypvm1ifkZkTef8GG/Osmf7Z49j1v2kiSTyzhwWsoDg==
+    database: ENC:nd7OOLUuK2bAsIj+QoyevPpcq8KXDKJyYdp/Dg6ozY64iA==
+    user: ENC:wsT+sjtI1qpvd7xBpWnwTT1Qo6b5J6QqEQ73S/LPuJ8+3jEFptlfNg==
+    password: ENC:W6HdSdFmL9RJ7dPZpL0ArZM8gOJdveZNzruZVbBatXKeuw+4PDZUfMnPN2Y=
+    port: 5432
+    sslmode: require
