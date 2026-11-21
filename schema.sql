@@ -6,9 +6,6 @@ CREATE TABLE IF NOT EXISTS genericreference (
 
 INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 0, 'Gender');
 
-
-
-
 INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 0, 'Gender');
 INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 1, 'Male');
 INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 1, 'Female');
