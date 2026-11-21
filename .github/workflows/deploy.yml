@@ -1,0 +1,32 @@
+name: Auto Deploy YAML Schema to DB
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - '**.yml'
+      - '**.yaml'
+  workflow_dispatch:
+
+jobs:
+  sync-schema:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout AlabDB YAML files
+        uses: actions/checkout@v4
+
+      - name: Push YAML Schema to AlabAPI (Auto-Create Tables in DB)
+        env:
+          ALAB_API_URL: ${{ secrets.ALAB_API_URL || 'https://alabfc.onrender.com' }}
+          ALAB_MASTER_KEY: ${{ secrets.ALAB_MASTER_KEY }}
+        run: |
+          for file in $(find . -maxdepth 2 -name "*.yml" -o -name "*.yaml" | grep -v ".github"); do
+            echo "Syncing $file to $ALAB_API_URL/api/schema/sync ..."
+            curl --fail-with-body -sS -X POST "$ALAB_API_URL/api/schema/sync" \
+              -H "Content-Type: application/x-yaml" \
+              -H "X-Master-Key: $ALAB_MASTER_KEY" \
+              --data-binary "@$file"
+            echo ""
+          done
