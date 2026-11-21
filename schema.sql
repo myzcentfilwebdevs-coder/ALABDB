@@ -1,9 +1,7 @@
-CREATE TABLE IF NOT EXISTS users (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    username VARCHAR(100) UNIQUE NOT NULL,
-    email VARCHAR(150) UNIQUE NOT NULL,
-    password_hash TEXT NOT NULL,
-    role VARCHAR(50) DEFAULT 'user',
-    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+CREATE TABLE IF NOT EXISTS genericreference (
+    seqnum SERIAL PRIMARY KEY,
+    parent_id INTEGER NOT NULL DEFAULT 0,
+    details VARCHAR(255) NOT NULL
 );
+
+INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 0, 'Gender');
