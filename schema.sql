@@ -64,3 +64,45 @@ INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 55, '
 INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 55, 'Senior High School Faculty');
 INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 55, 'Science & Mathematics');
 INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 55, 'Administration & Registrar');
+
+
+-- 2. Users Table (Login & Account Auth)
+CREATE TABLE IF NOT EXISTS users (
+    user_id SERIAL PRIMARY KEY,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    email VARCHAR(150) UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    role_id INTEGER REFERENCES genericreference(seqnum),
+    status_id INTEGER REFERENCES genericreference(seqnum),
+    is_verified BOOLEAN NOT NULL DEFAULT FALSE,
+    last_login_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 3. User Profiles Table (Registration Details)
+CREATE TABLE IF NOT EXISTS user_profiles (
+    profile_id SERIAL PRIMARY KEY,
+    user_id INTEGER UNIQUE NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    first_name VARCHAR(100) NOT NULL,
+    middle_name VARCHAR(100),
+    last_name VARCHAR(100) NOT NULL,
+    birthdate DATE,
+    gender_id INTEGER REFERENCES genericreference(seqnum),
+    phone_number VARCHAR(20),
+    address TEXT,
+    avatar_url TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 4. OTP Verifications Table (Email Verification & Forgot Password)
+CREATE TABLE IF NOT EXISTS otp_verifications (
+    otp_id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    otp_code VARCHAR(10) NOT NULL,
+    purpose VARCHAR(50) NOT NULL, -- 'REGISTER', 'RESET_PASSWORD'
+    expires_at TIMESTAMPTZ NOT NULL,
+    used_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
