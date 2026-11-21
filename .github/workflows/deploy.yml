@@ -1,4 +1,4 @@
-name: Auto Deploy YAML Schema to DB
+name: Auto Create Tables in Neon DB on Push
 
 on:
   push:
@@ -11,22 +11,94 @@ on:
   workflow_dispatch:
 
 jobs:
-  sync-schema:
+  auto-migrate-db:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout AlabDB YAML files
+      - name: Checkout AlabDB Repo
         uses: actions/checkout@v4
 
-      - name: Push YAML Schema to AlabAPI (Auto-Create Tables in DB)
+      - name: Install Dependencies
+        run: pip install pyyaml cryptography psycopg2-binary
+
+      - name: Auto-Create Tables in Neon PostgreSQL from YAML
         env:
-          ALAB_API_URL: ${{ secrets.ALAB_API_URL || 'https://alabfc.onrender.com' }}
-          ALAB_MASTER_KEY: ${{ secrets.ALAB_MASTER_KEY }}
+          ALAB_MASTER_KEY: ${{ secrets.ALAB_MASTER_KEY || '454d6e53fa18901a8076f714664dee292d9932ff62150bbb0920e7ccb1cad2c8' }}
+          PGHOST: 'ENC:9G48EKXFpcGdcxyhll1Rtw8lKvKewG40R+RqK4fh8lwZit5my0QogTmXoDtzaT4qypvm1ifkZkTef8GG/Osmf7Z49j1v2kiSTyzhwWsoDg=='
+          PGDATABASE: 'ENC:nd7OOLUuK2bAsIj+QoyevPpcq8KXDKJyYdp/Dg6ozY64iA=='
+          PGUSER: 'ENC:wsT+sjtI1qpvd7xBpWnwTT1Qo6b5J6QqEQ73S/LPuJ8+3jEFptlfNg=='
+          PGPASSWORD: 'ENC:W6HdSdFmL9RJ7dPZpL0ArZM8gOJdveZNzruZVbBatXKeuw+4PDZUfMnPN2Y='
+          PGPORT: '5432'
+          PGSSLMODE: 'require'
         run: |
-          for file in $(find . -maxdepth 2 -name "*.yml" -o -name "*.yaml" | grep -v ".github"); do
-            echo "Syncing $file to $ALAB_API_URL/api/schema/sync ..."
-            curl --fail-with-body -sS -X POST "$ALAB_API_URL/api/schema/sync" \
-              -H "Content-Type: application/x-yaml" \
-              -H "X-Master-Key: $ALAB_MASTER_KEY" \
-              --data-binary "@$file"
-            echo ""
-          done
+          python3 - << 'EOF'
+          import os, glob, base64, hashlib, yaml, psycopg2
+          from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+
+          def get_master_key():
+              raw = os.environ.get("ALAB_MASTER_KEY", "").strip().strip("'\"")
+              if len(raw) == 64:
+                  return bytes.fromhex(raw)
+              return hashlib.sha256(raw.encode()).digest()
+
+          def decrypt_val(val):
+              val = str(val or "").strip().strip("'\"")
+              if not val.startswith("ENC:"):
+                  return val
+              raw = base64.b64decode(val[4:])
+              nonce, ct = raw[:12], raw[12:]
+              return AESGCM(get_master_key()).decrypt(nonce, ct, None).decode()
+
+          default_conn = {
+              "host": decrypt_val(os.environ.get("PGHOST")),
+              "dbname": decrypt_val(os.environ.get("PGDATABASE")),
+              "user": decrypt_val(os.environ.get("PGUSER")),
+              "password": decrypt_val(os.environ.get("PGPASSWORD")),
+              "port": os.environ.get("PGPORT", "5432"),
+              "sslmode": os.environ.get("PGSSLMODE", "require"),
+          }
+
+          yml_files = [
+              f for f in glob.glob("**/*.y*ml", recursive=True)
+              if not f.startswith(".github")
+          ]
+
+          for path in sorted(yml_files):
+              with open(path, "r", encoding="utf-8") as fp:
+                  data = yaml.safe_load(fp) or {}
+
+              conn_cfg = dict(default_conn)
+              if isinstance(data.get("connection"), dict):
+                  c = data["connection"]
+                  if c.get("host"): conn_cfg["host"] = decrypt_val(c["host"])
+                  if c.get("database"): conn_cfg["dbname"] = decrypt_val(c["database"])
+                  if c.get("user"): conn_cfg["user"] = decrypt_val(c["user"])
+                  if c.get("password"): conn_cfg["password"] = decrypt_val(c["password"])
+                  if c.get("port"): conn_cfg["port"] = str(c["port"])
+                  if c.get("sslmode"): conn_cfg["sslmode"] = str(c["sslmode"])
+
+              conn = psycopg2.connect(**conn_cfg)
+              conn.autocommit = True
+              cur = conn.cursor()
+
+              tables = data.get("tables") or {}
+              for table_name, tdef in tables.items():
+                  cols = (tdef or {}).get("columns") or {}
+                  if not cols:
+                      continue
+                  col_defs = [f'"{col}" {ctype}' for col, ctype in cols.items()]
+                  cur.execute(f'CREATE TABLE IF NOT EXISTS "{table_name}" ({", ".join(col_defs)});')
+                  for col, ctype in cols.items():
+                      if "PRIMARY KEY" not in str(ctype).upper():
+                          cur.execute(f'ALTER TABLE "{table_name}" ADD COLUMN IF NOT EXISTS "{col}" {ctype};')
+                  print(f"[OK] Auto-created/updated table: {table_name}")
+
+              if data.get("sql"):
+                  cur.execute(data["sql"])
+                  print(f"[OK] Executed raw SQL from {path}")
+
+              cur.execute("SELECT pg_size_pretty(pg_database_size(current_database())), (SELECT count(*) FROM information_schema.tables WHERE table_schema = 'public');")
+              size_pretty, table_count = cur.fetchone()
+              print(f"[DB] Storage: {size_pretty} | Total Tables: {table_count}")
+              cur.close()
+              conn.close()
+          EOF
