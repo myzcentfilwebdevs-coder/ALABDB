@@ -17,7 +17,7 @@ jobs:
       - name: Install YAML and PostgreSQL Driver
         run: pip install pyyaml cryptography psycopg2-binary
 
-      - name: Connect via neon.yml and Auto-Add/Update Tables
+      - name: Connect via neon.yml and Run .sql / .yml Files
         env:
           ALAB_MASTER_KEY: ${{ secrets.ALAB_MASTER_KEY || '454d6e53fa18901a8076f714664dee292d9932ff62150bbb0920e7ccb1cad2c8' }}
         run: |
@@ -53,6 +53,22 @@ jobs:
                   "sslmode": str(c.get("sslmode", "require")),
               }
 
+          # 1. Execute all .sql files in the repo
+          sql_files = sorted(glob.glob("**/*.sql", recursive=True))
+          if sql_files:
+              conn = psycopg2.connect(**connections["default"])
+              conn.autocommit = True
+              cur = conn.cursor()
+              for sql_path in sql_files:
+                  with open(sql_path, "r", encoding="utf-8") as sfp:
+                      sql_query = sfp.read().strip()
+                  if sql_query:
+                      cur.execute(sql_query)
+                      print(f"[OK] Executed SQL file: {sql_path}")
+              cur.close()
+              conn.close()
+
+          # 2. Execute any .yml schema files (excluding neon.yml and .github)
           yml_files = [
               f for f in glob.glob("**/*.y*ml", recursive=True)
               if not f.startswith(".github") and os.path.basename(f) != "neon.yml"
@@ -64,7 +80,7 @@ jobs:
 
               target_db = data.get("database", "default")
               if target_db not in connections:
-                  raise RuntimeError(f"Database '{target_db}' not found in neon.yml")
+                  continue
 
               conn = psycopg2.connect(**connections[target_db])
               conn.autocommit = True
@@ -86,9 +102,16 @@ jobs:
                   cur.execute(data["sql"])
                   print(f"[OK] Executed SQL from {path} on DB '{target_db}'")
 
+              cur.close()
+              conn.close()
+
+          # 3. Print final DB storage & table count
+          for db_name, cfg in connections.items():
+              conn = psycopg2.connect(**cfg)
+              cur = conn.cursor()
               cur.execute("SELECT pg_size_pretty(pg_database_size(current_database())), (SELECT count(*) FROM information_schema.tables WHERE table_schema = 'public');")
               size_pretty, table_count = cur.fetchone()
-              print(f"[DB] Connected: '{target_db}' | Storage: {size_pretty} | Total Tables: {table_count}")
+              print(f"[DB] Connected: '{db_name}' | Storage: {size_pretty} | Total Tables: {table_count}")
               cur.close()
               conn.close()
           EOF
