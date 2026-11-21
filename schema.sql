@@ -1,3 +1,4 @@
+-- 1. Generic Reference Table (ALAB FC Master Lookups)
 CREATE TABLE IF NOT EXISTS genericreference (
     seqnum SERIAL PRIMARY KEY,
     parent_id INTEGER NOT NULL DEFAULT 0,
@@ -6,65 +7,83 @@ CREATE TABLE IF NOT EXISTS genericreference (
 
 TRUNCATE TABLE genericreference RESTART IDENTITY CASCADE;
 
+-- Gender (parent_id = 1)
 INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 0, 'Gender');
 INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 1, 'Male');
 INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 1, 'Female');
+
+-- Role (parent_id = 4)
 INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 0, 'Role');
 INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 4, 'Admin');
-INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 4, 'Teacher');
-INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 4, 'Registrar');
-INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 4, 'Student');
-INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 0, 'Status');
+INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 4, 'Coach');
+INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 4, 'Parent');
+INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 4, 'Player');
+
+-- Account Status (parent_id = 9)
+INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 0, 'Account Status');
 INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 9, 'Active');
 INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 9, 'Inactive');
+INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 9, 'Pending');
 INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 9, 'Suspended');
-INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 9, 'Transfer');
-INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 0, 'CivilStatus');
-INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 14, 'Single');
-INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 14, 'Married');
-INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 14, 'Widowed');
-INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 14, 'Divorced');
-INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 0, 'Student Type');
-INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 19, 'New');
-INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 19, 'Transferee');
-INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 19, 'Returning');
-INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 0, 'Enrollment Status');
-INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 23, 'Pending');
-INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 23, 'Approved');
-INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 23, 'Rejected');
-INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 0, 'Year Level');
-INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 27, 'Grade 11');
-INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 27, 'Grade 12');
-INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 27, '1st Year');
-INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 27, '2nd Year');
-INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 27, '3rd Year');
-INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 27, '4th Year');
+
+-- Relationship (parent_id = 14)
 INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 0, 'Relationship');
-INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 34, 'Father');
-INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 34, 'Mother');
-INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 34, 'Guardian');
-INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 34, 'Brother');
-INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 34, 'Sister');
-INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 34, 'Uncle');
-INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 34, 'Aunt');
-INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 34, 'Grandfather');
-INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 34, 'Grandmother');
-INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 0, 'ValidIdType');
-INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 44, 'National ID');
-INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 44, 'Passport');
-INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 44, 'Driver''s License');
-INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 44, 'PRC ID');
-INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 44, 'UMID');
-INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 44, 'SSS');
-INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 44, 'PhilHealth ID');
-INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 44, 'TIN ID');
-INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 44, 'Postal ID');
-INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 44, 'Voter''s ID');
-INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 0, 'Department');
-INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 55, 'Information Technology');
-INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 55, 'Senior High School Faculty');
-INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 55, 'Science & Mathematics');
-INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 55, 'Administration & Registrar');
+INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 14, 'Father');
+INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 14, 'Mother');
+INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 14, 'Guardian');
+INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 14, 'Relative');
+
+-- Age Category / Division (parent_id = 19)
+INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 0, 'Age Category');
+INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 19, 'U-8');
+INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 19, 'U-10');
+INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 19, 'U-12');
+INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 19, 'U-14');
+INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 19, 'U-16');
+INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 19, 'U-18');
+
+-- Player Position (parent_id = 26)
+INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 0, 'Player Position');
+INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 26, 'Goalkeeper');
+INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 26, 'Defender');
+INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 26, 'Midfielder');
+INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 26, 'Forward');
+
+-- Attendance Status (parent_id = 31)
+INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 0, 'Attendance Status');
+INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 31, 'Present');
+INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 31, 'Absent');
+INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 31, 'Late');
+INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 31, 'Excused');
+
+-- Tournament Status (parent_id = 36)
+INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 0, 'Tournament Status');
+INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 36, 'Upcoming');
+INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 36, 'Ongoing');
+INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 36, 'Completed');
+INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 36, 'Cancelled');
+
+-- SOA / Billing Status (parent_id = 41)
+INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 0, 'SOA Status');
+INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 41, 'Unpaid');
+INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 41, 'Partial');
+INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 41, 'Paid');
+INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 41, 'Overdue');
+
+-- Payment Method (parent_id = 46)
+INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 0, 'Payment Method');
+INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 46, 'GCash');
+INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 46, 'Maya');
+INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 46, 'Bank Transfer');
+INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 46, 'Cash');
+
+-- Fee Type (parent_id = 51)
+INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 0, 'Fee Type');
+INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 51, 'Monthly Training Fee');
+INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 51, 'Registration Fee');
+INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 51, 'Tournament Fee');
+INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 51, 'Jersey / Kit Fee');
+
 
 -- 2. Users Table (Login & Account Auth)
 CREATE TABLE IF NOT EXISTS users (
@@ -80,7 +99,7 @@ CREATE TABLE IF NOT EXISTS users (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- 3. User Profiles Table (Registration Details)
+-- 3. User Profiles Table (Personal & Player Details)
 CREATE TABLE IF NOT EXISTS user_profiles (
     profile_id SERIAL PRIMARY KEY,
     user_id INTEGER UNIQUE NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
@@ -89,6 +108,9 @@ CREATE TABLE IF NOT EXISTS user_profiles (
     last_name VARCHAR(100) NOT NULL,
     birthdate DATE,
     gender_id INTEGER REFERENCES genericreference(seqnum),
+    age_category_id INTEGER REFERENCES genericreference(seqnum),
+    position_id INTEGER REFERENCES genericreference(seqnum),
+    jersey_number INTEGER,
     phone_number VARCHAR(20),
     address TEXT,
     avatar_url TEXT,
@@ -96,13 +118,115 @@ CREATE TABLE IF NOT EXISTS user_profiles (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- 4. OTP Verifications Table (Email Verification & Forgot Password)
+-- 4. Parent to Player (Bata) Relationship Table
+CREATE TABLE IF NOT EXISTS parent_players (
+    id SERIAL PRIMARY KEY,
+    parent_user_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    player_user_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    relationship_id INTEGER REFERENCES genericreference(seqnum),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(parent_user_id, player_user_id)
+);
+
+-- 5. OTP Verifications Table (Email Verification & Forgot Password)
 CREATE TABLE IF NOT EXISTS otp_verifications (
     otp_id SERIAL PRIMARY KEY,
     user_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
     otp_code VARCHAR(10) NOT NULL,
-    purpose VARCHAR(50) NOT NULL, -- 'REGISTER', 'RESET_PASSWORD'
+    purpose VARCHAR(50) NOT NULL,
     expires_at TIMESTAMPTZ NOT NULL,
     used_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 6. Upcoming Tournaments Table
+CREATE TABLE IF NOT EXISTS tournaments (
+    tournament_id SERIAL PRIMARY KEY,
+    title VARCHAR(150) NOT NULL,
+    description TEXT,
+    venue VARCHAR(200) NOT NULL,
+    start_date DATE NOT NULL,
+    end_date DATE,
+    age_category_id INTEGER REFERENCES genericreference(seqnum),
+    status_id INTEGER REFERENCES genericreference(seqnum),
+    registration_fee NUMERIC(10, 2) NOT NULL DEFAULT 0.00,
+    banner_url TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 7. Tournament Rosters (Mga Batang Kasali sa Tournament)
+CREATE TABLE IF NOT EXISTS tournament_rosters (
+    roster_id SERIAL PRIMARY KEY,
+    tournament_id INTEGER NOT NULL REFERENCES tournaments(tournament_id) ON DELETE CASCADE,
+    player_user_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    parent_consent BOOLEAN NOT NULL DEFAULT FALSE,
+    remarks TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(tournament_id, player_user_id)
+);
+
+-- 8. Training Sessions Table
+CREATE TABLE IF NOT EXISTS training_sessions (
+    session_id SERIAL PRIMARY KEY,
+    title VARCHAR(150) NOT NULL,
+    session_date DATE NOT NULL,
+    start_time TIME,
+    end_time TIME,
+    venue VARCHAR(200),
+    age_category_id INTEGER REFERENCES genericreference(seqnum),
+    coach_user_id INTEGER REFERENCES users(user_id) ON DELETE SET NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 9. Player Attendance Table (Attendance ng Bata)
+CREATE TABLE IF NOT EXISTS player_attendance (
+    attendance_id SERIAL PRIMARY KEY,
+    session_id INTEGER NOT NULL REFERENCES training_sessions(session_id) ON DELETE CASCADE,
+    player_user_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    status_id INTEGER REFERENCES genericreference(seqnum),
+    check_in_time TIMESTAMPTZ,
+    remarks TEXT,
+    recorded_by INTEGER REFERENCES users(user_id) ON DELETE SET NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(session_id, player_user_id)
+);
+
+-- 10. Statements of Account (SOA para sa mga Magulang)
+CREATE TABLE IF NOT EXISTS statements_of_account (
+    soa_id SERIAL PRIMARY KEY,
+    soa_number VARCHAR(50) UNIQUE NOT NULL,
+    player_user_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    parent_user_id INTEGER REFERENCES users(user_id) ON DELETE SET NULL,
+    billing_period VARCHAR(100) NOT NULL,
+    due_date DATE NOT NULL,
+    total_amount NUMERIC(10, 2) NOT NULL DEFAULT 0.00,
+    amount_paid NUMERIC(10, 2) NOT NULL DEFAULT 0.00,
+    balance NUMERIC(10, 2) NOT NULL DEFAULT 0.00,
+    status_id INTEGER REFERENCES genericreference(seqnum),
+    notes TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 11. SOA Breakdown Items
+CREATE TABLE IF NOT EXISTS soa_items (
+    item_id SERIAL PRIMARY KEY,
+    soa_id INTEGER NOT NULL REFERENCES statements_of_account(soa_id) ON DELETE CASCADE,
+    fee_type_id INTEGER REFERENCES genericreference(seqnum),
+    description VARCHAR(200) NOT NULL,
+    amount NUMERIC(10, 2) NOT NULL DEFAULT 0.00,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 12. SOA Payments (Bayad ng Magulang)
+CREATE TABLE IF NOT EXISTS soa_payments (
+    payment_id SERIAL PRIMARY KEY,
+    soa_id INTEGER NOT NULL REFERENCES statements_of_account(soa_id) ON DELETE CASCADE,
+    amount_paid NUMERIC(10, 2) NOT NULL,
+    payment_method_id INTEGER REFERENCES genericreference(seqnum),
+    reference_number VARCHAR(100),
+    receipt_url TEXT,
+    verified_by INTEGER REFERENCES users(user_id) ON DELETE SET NULL,
+    paid_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
