@@ -6,6 +6,15 @@ on:
       - main
       - master
   workflow_dispatch:
+    inputs:
+      deploy_mode:
+        description: 'Piliin ang Deploy Mode'
+        required: true
+        default: 'redeploy_safe'
+        type: choice
+        options:
+          - redeploy_safe
+          - full_reset
 
 jobs:
   sync-neon-db:
@@ -17,9 +26,10 @@ jobs:
       - name: Install YAML and PostgreSQL Driver
         run: pip install pyyaml cryptography psycopg2-binary
 
-      - name: Connect via neon.yml and Run .sql / .yml Files
+      - name: Deploy / Redeploy Schema to Neon DB
         env:
           ALAB_MASTER_KEY: ${{ secrets.ALAB_MASTER_KEY || '454d6e53fa18901a8076f714664dee292d9932ff62150bbb0920e7ccb1cad2c8' }}
+          DEPLOY_MODE: ${{ github.event.inputs.deploy_mode || 'redeploy_safe' }}
         run: |
           python3 - << 'EOF'
           import os, glob, base64, hashlib, yaml, psycopg2
@@ -52,6 +62,18 @@ jobs:
                   "port": str(c.get("port", "5432")),
                   "sslmode": str(c.get("sslmode", "require")),
               }
+
+          deploy_mode = os.environ.get("DEPLOY_MODE", "redeploy_safe")
+          print(f"[MODE] Running in '{deploy_mode}' mode...")
+
+          if deploy_mode == "full_reset":
+              conn = psycopg2.connect(**connections["default"])
+              conn.autocommit = True
+              cur = conn.cursor()
+              cur.execute("DROP SCHEMA public CASCADE; CREATE SCHEMA public;")
+              print("[RESET] Dropped and recreated public schema for clean redeploy.")
+              cur.close()
+              conn.close()
 
           # 1. Execute all .sql files in the repo
           sql_files = sorted(glob.glob("**/*.sql", recursive=True))
@@ -111,7 +133,9 @@ jobs:
               cur = conn.cursor()
               cur.execute("SELECT pg_size_pretty(pg_database_size(current_database())), (SELECT count(*) FROM information_schema.tables WHERE table_schema = 'public');")
               size_pretty, table_count = cur.fetchone()
-              print(f"[DB] Connected: '{db_name}' | Storage: {size_pretty} | Total Tables: {table_count}")
+              cur.execute("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' ORDER BY table_name;")
+              table_names = [r[0] for r in cur.fetchall()]
+              print(f"[DB] Connected: '{db_name}' | Storage: {size_pretty} | Total Tables: {table_count} {table_names}")
               cur.close()
               conn.close()
           EOF

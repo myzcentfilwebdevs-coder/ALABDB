@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS genericreference (
     details VARCHAR(255) NOT NULL
 );
 
+TRUNCATE TABLE genericreference RESTART IDENTITY CASCADE;
 
 INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 0, 'Gender');
 INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 1, 'Male');
@@ -51,20 +52,19 @@ INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 34, '
 INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 0, 'ValidIdType');
 INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 44, 'National ID');
 INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 44, 'Passport');
-INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 44, 'Driver''''s License');
+INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 44, 'Driver''s License');
 INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 44, 'PRC ID');
 INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 44, 'UMID');
 INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 44, 'SSS');
 INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 44, 'PhilHealth ID');
 INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 44, 'TIN ID');
 INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 44, 'Postal ID');
-INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 44, 'Voter''''s ID');
+INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 44, 'Voter''s ID');
 INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 0, 'Department');
 INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 55, 'Information Technology');
 INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 55, 'Senior High School Faculty');
 INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 55, 'Science & Mathematics');
 INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 55, 'Administration & Registrar');
-
 
 -- 2. Users Table (Login & Account Auth)
 CREATE TABLE IF NOT EXISTS users (
