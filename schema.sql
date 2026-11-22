@@ -1,11 +1,10 @@
 -- 1. Generic Reference Table (ALAB FC Master Lookups)
-CREATE TABLE IF NOT EXISTS genericreference (
+DROP TABLE IF EXISTS genericreference CASCADE;
+CREATE TABLE genericreference (
     seqnum SERIAL PRIMARY KEY,
     parent_id INTEGER NOT NULL DEFAULT 0,
     details VARCHAR(255) NOT NULL
 );
-
-TRUNCATE TABLE genericreference RESTART IDENTITY CASCADE;
 
 -- Gender (parent_id = 1)
 INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 0, 'Gender');
@@ -86,7 +85,8 @@ INSERT INTO genericreference (seqnum, parent_id, details) VALUES (DEFAULT, 51, '
 
 
 -- 2. Users Table (Login & Account Auth)
-CREATE TABLE IF NOT EXISTS users (
+DROP TABLE IF EXISTS users CASCADE;
+CREATE TABLE users (
     user_id SERIAL PRIMARY KEY,
     username VARCHAR(50) UNIQUE NOT NULL,
     email VARCHAR(150) UNIQUE NOT NULL,
@@ -100,7 +100,8 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 -- 3. User Profiles Table (Personal & Player Details)
-CREATE TABLE IF NOT EXISTS user_profiles (
+DROP TABLE IF EXISTS user_profiles CASCADE;
+CREATE TABLE user_profiles (
     profile_id SERIAL PRIMARY KEY,
     user_id INTEGER UNIQUE NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
     first_name VARCHAR(100) NOT NULL,
@@ -119,7 +120,8 @@ CREATE TABLE IF NOT EXISTS user_profiles (
 );
 
 -- 4. Parent to Player (Bata) Relationship Table
-CREATE TABLE IF NOT EXISTS parent_players (
+DROP TABLE IF EXISTS parent_players CASCADE;
+CREATE TABLE parent_players (
     id SERIAL PRIMARY KEY,
     parent_user_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
     player_user_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
@@ -129,7 +131,8 @@ CREATE TABLE IF NOT EXISTS parent_players (
 );
 
 -- 5. OTP Verifications Table (Email Verification & Forgot Password)
-CREATE TABLE IF NOT EXISTS otp_verifications (
+DROP TABLE IF EXISTS otp_verifications CASCADE;
+CREATE TABLE otp_verifications (
     otp_id SERIAL PRIMARY KEY,
     user_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
     otp_code VARCHAR(10) NOT NULL,
@@ -140,7 +143,8 @@ CREATE TABLE IF NOT EXISTS otp_verifications (
 );
 
 -- 6. Upcoming Tournaments Table
-CREATE TABLE IF NOT EXISTS tournaments (
+DROP TABLE IF EXISTS tournaments CASCADE;
+CREATE TABLE tournaments (
     tournament_id SERIAL PRIMARY KEY,
     title VARCHAR(150) NOT NULL,
     description TEXT,
@@ -156,7 +160,8 @@ CREATE TABLE IF NOT EXISTS tournaments (
 );
 
 -- 7. Tournament Rosters (Mga Batang Kasali sa Tournament)
-CREATE TABLE IF NOT EXISTS tournament_rosters (
+DROP TABLE IF EXISTS tournament_rosters CASCADE;
+CREATE TABLE tournament_rosters (
     roster_id SERIAL PRIMARY KEY,
     tournament_id INTEGER NOT NULL REFERENCES tournaments(tournament_id) ON DELETE CASCADE,
     player_user_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
@@ -167,7 +172,8 @@ CREATE TABLE IF NOT EXISTS tournament_rosters (
 );
 
 -- 8. Training Sessions Table
-CREATE TABLE IF NOT EXISTS training_sessions (
+DROP TABLE IF EXISTS training_sessions CASCADE;
+CREATE TABLE training_sessions (
     session_id SERIAL PRIMARY KEY,
     title VARCHAR(150) NOT NULL,
     session_date DATE NOT NULL,
@@ -180,7 +186,8 @@ CREATE TABLE IF NOT EXISTS training_sessions (
 );
 
 -- 9. Player Attendance Table (Attendance ng Bata)
-CREATE TABLE IF NOT EXISTS player_attendance (
+DROP TABLE IF EXISTS player_attendance CASCADE;
+CREATE TABLE player_attendance (
     attendance_id SERIAL PRIMARY KEY,
     session_id INTEGER NOT NULL REFERENCES training_sessions(session_id) ON DELETE CASCADE,
     player_user_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
@@ -193,7 +200,8 @@ CREATE TABLE IF NOT EXISTS player_attendance (
 );
 
 -- 10. Statements of Account (SOA para sa mga Magulang)
-CREATE TABLE IF NOT EXISTS statements_of_account (
+DROP TABLE IF EXISTS statements_of_account CASCADE;
+CREATE TABLE statements_of_account (
     soa_id SERIAL PRIMARY KEY,
     soa_number VARCHAR(50) UNIQUE NOT NULL,
     player_user_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
@@ -210,7 +218,8 @@ CREATE TABLE IF NOT EXISTS statements_of_account (
 );
 
 -- 11. SOA Breakdown Items
-CREATE TABLE IF NOT EXISTS soa_items (
+DROP TABLE IF EXISTS soa_items CASCADE;
+CREATE TABLE soa_items (
     item_id SERIAL PRIMARY KEY,
     soa_id INTEGER NOT NULL REFERENCES statements_of_account(soa_id) ON DELETE CASCADE,
     fee_type_id INTEGER REFERENCES genericreference(seqnum),
@@ -220,7 +229,8 @@ CREATE TABLE IF NOT EXISTS soa_items (
 );
 
 -- 12. SOA Payments (Bayad ng Magulang)
-CREATE TABLE IF NOT EXISTS soa_payments (
+DROP TABLE IF EXISTS soa_payments CASCADE;
+CREATE TABLE soa_payments (
     payment_id SERIAL PRIMARY KEY,
     soa_id INTEGER NOT NULL REFERENCES statements_of_account(soa_id) ON DELETE CASCADE,
     amount_paid NUMERIC(10, 2) NOT NULL,
