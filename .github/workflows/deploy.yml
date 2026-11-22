@@ -10,10 +10,11 @@ on:
       deploy_mode:
         description: 'Piliin ang Deploy Mode'
         required: true
-        default: 'redeploy_safe'
+        default: 'schema_only'
         type: choice
         options:
-          - redeploy_safe
+          - schema_only
+          - run_backup_and_schema
           - full_reset
 
 jobs:
@@ -22,14 +23,33 @@ jobs:
     steps:
       - name: Checkout AlabDB Repo
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
 
       - name: Install YAML and PostgreSQL Driver
         run: pip install pyyaml cryptography psycopg2-binary
 
-      - name: Deploy / Redeploy Schema to Neon DB
+      - name: Check if backup/backup.txt was modified
+        id: check_backup
+        run: |
+          if git rev-parse HEAD~1 >/dev/null 2>&1; then
+            CHANGED=$(git diff --name-only HEAD~1 HEAD)
+          else
+            CHANGED=""
+          fi
+          echo "Changed files in this push:"
+          echo "$CHANGED"
+          if echo "$CHANGED" | grep -q "^backup/"; then
+            echo "backup_modified=true" >> $GITHUB_OUTPUT
+          else
+            echo "backup_modified=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Deploy Schema to Neon DB
         env:
           ALAB_MASTER_KEY: ${{ secrets.ALAB_MASTER_KEY || '454d6e53fa18901a8076f714664dee292d9932ff62150bbb0920e7ccb1cad2c8' }}
-          DEPLOY_MODE: ${{ github.event.inputs.deploy_mode || 'redeploy_safe' }}
+          DEPLOY_MODE: ${{ github.event.inputs.deploy_mode || 'schema_only' }}
+          BACKUP_MODIFIED: ${{ steps.check_backup.outputs.backup_modified }}
         run: |
           python3 - << 'EOF'
           import os, glob, base64, hashlib, yaml, psycopg2
@@ -63,79 +83,44 @@ jobs:
                   "sslmode": str(c.get("sslmode", "require")),
               }
 
-          deploy_mode = os.environ.get("DEPLOY_MODE", "redeploy_safe")
-          print(f"[MODE] Running in '{deploy_mode}' mode...")
+          deploy_mode = os.environ.get("DEPLOY_MODE", "schema_only")
+          backup_modified = os.environ.get("BACKUP_MODIFIED", "false") == "true"
+
+          conn = psycopg2.connect(**connections["default"])
+          conn.autocommit = True
+          cur = conn.cursor()
 
           if deploy_mode == "full_reset":
-              conn = psycopg2.connect(**connections["default"])
-              conn.autocommit = True
-              cur = conn.cursor()
               cur.execute("DROP SCHEMA public CASCADE; CREATE SCHEMA public;")
-              print("[RESET] Dropped and recreated public schema for clean redeploy.")
-              cur.close()
-              conn.close()
+              print("[RESET] Dropped and recreated public schema.")
 
-          # 1. Execute all .sql files in the repo
-          sql_files = sorted(glob.glob("**/*.sql", recursive=True))
-          if sql_files:
-              conn = psycopg2.connect(**connections["default"])
-              conn.autocommit = True
-              cur = conn.cursor()
-              for sql_path in sql_files:
-                  with open(sql_path, "r", encoding="utf-8") as sfp:
-                      sql_query = sfp.read().strip()
-                  if sql_query:
-                      cur.execute(sql_query)
-                      print(f"[OK] Executed SQL file: {sql_path}")
-              cur.close()
-              conn.close()
+          # 1. Check backup/backup.txt
+          run_backup = (deploy_mode in ("run_backup_and_schema", "full_reset"))
+          if run_backup:
+              for bpath in sorted(glob.glob("backup/*.txt") + glob.glob("backup/*.sql")):
+                  with open(bpath, "r", encoding="utf-8") as bfp:
+                      bsql = bfp.read().strip()
+                  if bsql:
+                      cur.execute(bsql)
+                      print(f"[BACKUP-RUN] Executed {bpath}")
+          else:
+              print("[SKIP] backup/backup.txt skipped (preserving all finished/tested tables in DB).")
 
-          # 2. Execute any .yml schema files (excluding neon.yml and .github)
-          yml_files = [
-              f for f in glob.glob("**/*.y*ml", recursive=True)
-              if not f.startswith(".github") and os.path.basename(f) != "neon.yml"
-          ]
+          # 2. Run only root schema.sql (active console)
+          if os.path.exists("schema.sql"):
+              with open("schema.sql", "r", encoding="utf-8") as sfp:
+                  sql_query = sfp.read().strip()
+              if sql_query:
+                  cur.execute(sql_query)
+                  print("[OK] Executed active schema.sql")
+              else:
+                  print("[INFO] schema.sql is empty, nothing new to execute.")
 
-          for path in sorted(yml_files):
-              with open(path, "r", encoding="utf-8") as fp:
-                  data = yaml.safe_load(fp) or {}
-
-              target_db = data.get("database", "default")
-              if target_db not in connections:
-                  continue
-
-              conn = psycopg2.connect(**connections[target_db])
-              conn.autocommit = True
-              cur = conn.cursor()
-
-              tables = data.get("tables") or {}
-              for table_name, tdef in tables.items():
-                  cols = (tdef or {}).get("columns") or {}
-                  if not cols:
-                      continue
-                  col_defs = [f'"{col}" {ctype}' for col, ctype in cols.items()]
-                  cur.execute(f'CREATE TABLE IF NOT EXISTS "{table_name}" ({", ".join(col_defs)});')
-                  for col, ctype in cols.items():
-                      if "PRIMARY KEY" not in str(ctype).upper():
-                          cur.execute(f'ALTER TABLE "{table_name}" ADD COLUMN IF NOT EXISTS "{col}" {ctype};')
-                  print(f"[OK] Auto-added/updated table '{table_name}' on DB '{target_db}' (from {path})")
-
-              if data.get("sql"):
-                  cur.execute(data["sql"])
-                  print(f"[OK] Executed SQL from {path} on DB '{target_db}'")
-
-              cur.close()
-              conn.close()
-
-          # 3. Print final DB storage & table count
-          for db_name, cfg in connections.items():
-              conn = psycopg2.connect(**cfg)
-              cur = conn.cursor()
-              cur.execute("SELECT pg_size_pretty(pg_database_size(current_database())), (SELECT count(*) FROM information_schema.tables WHERE table_schema = 'public');")
-              size_pretty, table_count = cur.fetchone()
-              cur.execute("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' ORDER BY table_name;")
-              table_names = [r[0] for r in cur.fetchall()]
-              print(f"[DB] Connected: '{db_name}' | Storage: {size_pretty} | Total Tables: {table_count} {table_names}")
-              cur.close()
-              conn.close()
+          cur.execute("SELECT pg_size_pretty(pg_database_size(current_database())), (SELECT count(*) FROM information_schema.tables WHERE table_schema = 'public');")
+          size_pretty, table_count = cur.fetchone()
+          cur.execute("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' ORDER BY table_name;")
+          table_names = [r[0] for r in cur.fetchall()]
+          print(f"[DB] Connected: 'default' | Storage: {size_pretty} | Total Tables: {table_count} {table_names}")
+          cur.close()
+          conn.close()
           EOF
