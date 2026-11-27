@@ -114,6 +114,7 @@ CREATE TABLE players (
     jersey_number INTEGER,
     avatar_url TEXT,
     status_id INTEGER REFERENCES genericreference(seqnum) DEFAULT 10,
+    created_by INTEGER REFERENCES users(user_id) ON DELETE SET NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
